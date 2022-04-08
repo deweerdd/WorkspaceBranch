@@ -1,8 +1,9 @@
 name: 'Terraform WordPress'
+
 on:
   push:
     branches:
-      - main
+      - master
       - development
     paths:
       - '.github/workflows/terraform_wordpress_development.yml'
@@ -14,7 +15,7 @@ on:
 
 env:
 ##When developing feature branch set Workspace
-  WORKSPACE_NAME: "new_flow"
+  WORKSPACE_NAME: "development"
 
 jobs:  
   terraform:
@@ -25,16 +26,16 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: terraform/development/wordpress
+        working-directory: terraform/wordpress
 
     steps:
       - uses: actions/checkout@v2
       
       ## Use Default workspace when branch is development
-      - name: Override Workspace for development
-        if: github.ref == 'refs/heads/development'
-        run: |
-          echo "WORKSPACE_NAME=default" >> $GITHUB_ENV
+      # - name: Override Workspace for development
+      #   if: github.ref == 'refs/heads/development'
+      #   run: |
+      #     echo "WORKSPACE_NAME=default" >> $GITHUB_ENV
 
       - run: |
           echo "$WORKSPACE_NAME"
@@ -66,5 +67,11 @@ jobs:
       # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
       - name: Terraform Init
         id: init
-        run: terraform init
+        run: terraform init -backend-confg=./development/development-backend.tf
         continue-on-error: true
+
+      # Generate an execution plan for Terraform
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -var-file=./development/development.tfvars -no-color
+        continue-on-error: false
